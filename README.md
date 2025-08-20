@@ -20,16 +20,4 @@ pip freeze > requirements.txt --> generar el reqs.txt de nuevo (en caso de insta
 
 uvicorn app.main:app --reload
 
-# Abrir otra terminal para el front-end manteniendo la del back-end activa
 
-# Dirigirse al front-end
-
-cd front-end
-
-# Instalar las dependencias
-
-npm install
-
-# Ejecutar el servidor de desarrollo
-
-npm start
