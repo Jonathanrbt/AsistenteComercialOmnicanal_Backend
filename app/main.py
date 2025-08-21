@@ -12,3 +12,6 @@ def on_startup():
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+if __name__ == "__main__":
+   print("BOT RUNNING")
