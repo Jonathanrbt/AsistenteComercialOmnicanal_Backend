@@ -1,14 +1,38 @@
+import os
 from fastapi import FastAPI
-from sqlmodel import SQLModel
-from app.utils.dbConn import engine
-from app.models import userModel, chatModel, messageModel
+from fastapi.middleware.cors import CORSMiddleware
+from app.utils.dbConn import create_db_and_tables
+from app.routes.auth import auth_router
+from app.models.userModel import User
+from dotenv import load_dotenv
 
-app = FastAPI()
+
+load_dotenv()
+
+project_name = os.getenv("PROJECT_NAME", "Asistente Comercial Omnicanal")
+version = os.getenv("VERSION", "1.0.0")
+frontend_origin = os.getenv("FRONTEND_ORIGIN", "http://localhost:5173")
+
+app = FastAPI(
+    title=project_name,
+    version=version,
+    description="Backend para el asistente comercial omnicanal.",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[frontend_origin],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(auth_router, prefix="/api", tags=["Authentication"])
 
 @app.on_event("startup")
 def on_startup():
-    SQLModel.metadata.create_all(engine)
+    create_db_and_tables()
 
-@app.get("/health")
-def health():
-    return {"status": "ok"}
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
