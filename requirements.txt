@@ -1,6 +1,0 @@
-fastapi
-uvicorn
-sqlmodel
-qdrant-client
-fastembed
-python-dotenv
