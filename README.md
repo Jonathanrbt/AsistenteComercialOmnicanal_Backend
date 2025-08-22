@@ -20,4 +20,10 @@ pip freeze > requirements.txt --> generar el reqs.txt de nuevo (en caso de insta
 
 uvicorn app.main:app --reload
 
+# Se abre otra terminal para ejecutar el bot de telegram
+
+# Ejecutar el archivo donde esta el webhook para el bot y lo conecta con la API
+
+python -m app.run
+
 
