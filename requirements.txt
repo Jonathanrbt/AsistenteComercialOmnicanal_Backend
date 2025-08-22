@@ -1,6 +1,6 @@
 fastapi
 uvicorn
-sqlmodel
+sqlmodel[all]
 python-dotenv
 passlib[bcrypt]
 python-jose[cryptography]

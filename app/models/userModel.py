@@ -1,15 +1,20 @@
 from __future__ import annotations
-from typing import Optional, List, TYPE_CHECKING
-from sqlmodel import SQLModel, Field, Relationship
-
-if TYPE_CHECKING:
-    from .chatModel import Chat
+from typing import Optional
+from sqlmodel import SQLModel, Field
+from datetime import datetime
 
 class User(SQLModel, table=True):
     __tablename__ = "users"
 
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: str = Field(index=True, unique=True)
-    channel: str  
+    full_name: str
+    email_address: str = Field(index=True, unique=True)
+    hashed_password: str
+    channel: str = Field(default="web")
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    is_active: bool = Field(default=True)
+    last_login: Optional[datetime] = None
 
-    chats: List["Chat"] = Relationship(back_populates="user")
+    # COMENTAR TEMPORALMENTE LAS RELACIONES
+    # chats: List["Chat"] = Relationship(back_populates="user", sa_relationship_kwargs={'lazy': 'selectin'})

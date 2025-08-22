@@ -1,44 +1,48 @@
+from jose import JWTError, jwt
+from datetime import datetime, timedelta
+from passlib.context import CryptContext
+from fastapi.security import OAuth2PasswordBearer
 import os
 from dotenv import load_dotenv
-from datetime import datetime, timedelta
-from jose import JWTError, jwt
-from passlib.context import CryptContext
-from fastapi import HTTPException, status, Depends
-from fastapi.security import OAuth2PasswordBearer
 
 load_dotenv()
 
+# Configuración de seguridad
+SECRET_KEY = os.getenv("SECRET_KEY", "clave_secreta_por_defecto_cambiar_en_produccion")
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+# Contexto para hashing de contraseñas
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
-
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
-
-KeySecret = os.getenv('KEY_SECRET', "")
-JwtAlgorithm = os.getenv('JWT_ALGORITHM', "HS256")
-TokenExpiryMinutes = int(os.getenv('TOKEN_EXPIRY_MINUTES', 60))
-
+# Esquema OAuth2
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
-def generate_access_token(payload_data: dict) -> str:
-    token_data = payload_data.copy()
-    expiration_time = datetime.utcnow() + timedelta(minutes=TokenExpiryMinutes)
-    token_data.update({"exp": expiration_time})
-    jwt_token = jwt.encode(token_data, KeySecret, algorithm=JwtAlgorithm)
-    return jwt_token
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Verifica si la contraseña coincide con el hash"""
+    return pwd_context.verify(plain_password, hashed_password)
 
-def verify_access_token(token: str) -> dict:
+def get_password_hash(password: str) -> str:
+    """Genera hash de la contraseña"""
+    return pwd_context.hash(password)
+
+def create_access_token(data: dict, expires_delta: timedelta = None) -> str:
+    """Crea un token JWT de acceso"""
+    to_encode = data.copy()
+    
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+def verify_token(token: str):
+    """Verifica y decodifica un token JWT"""
     try:
-        decoded_payload = jwt.decode(token, KeySecret, algorithms=[JwtAlgorithm])
-        return decoded_payload
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return payload
     except JWTError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token inválido o expirado."
-        )
-
-def get_authenticated_user(token: str = Depends(oauth2_scheme)) -> dict:
-    payload = verify_access_token(token)
-    return payload
+        return None

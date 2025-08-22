@@ -1,11 +1,7 @@
 from __future__ import annotations
-from typing import Optional, List, TYPE_CHECKING
+from typing import Optional
 from datetime import datetime
-from sqlmodel import SQLModel, Field, Relationship
-
-if TYPE_CHECKING:
-    from .userModel import User
-    from .messageModel import Message
+from sqlmodel import SQLModel, Field
 
 class Chat(SQLModel, table=True):
     __tablename__ = "chats"
@@ -16,5 +12,6 @@ class Chat(SQLModel, table=True):
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     total_messages: int = 0
 
-    user: "User" = Relationship(back_populates="chats")
-    messages: List["Message"] = Relationship(back_populates="chat")
+    # COMENTAR TEMPORALMENTE LAS RELACIONES
+    # user: "User" = Relationship(back_populates="chats", sa_relationship_kwargs={'lazy': 'joined'})
+    # messages: List["Message"] = Relationship(back_populates="chat", sa_relationship_kwargs={'lazy': 'selectin'})
