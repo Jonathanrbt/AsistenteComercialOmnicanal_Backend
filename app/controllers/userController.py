@@ -3,7 +3,7 @@ from sqlmodel import Session, select
 from datetime import datetime, timedelta
 import uuid
 
-from app.models.userModel import User
+from app.models.userModel import User, UserRole
 from app.schemas.userSchema import UserCreate, UserLogin, Token
 from app.utils.security import (
     create_access_token, 
@@ -30,6 +30,7 @@ def handle_registration(user_data: UserCreate, session: Session) -> User:
         full_name=user_data.full_name,
         email_address=user_data.email_address,
         channel=user_data.channel,
+        role=user_data.role,
         hashed_password=get_password_hash(user_data.password)
     )
     
@@ -39,7 +40,7 @@ def handle_registration(user_data: UserCreate, session: Session) -> User:
     
     return new_user
 
-def handle_login(login_data: UserLogin, session: Session):
+def handle_login(login_data: dict, session: Session):
     user = session.exec(
         select(User).where(User.email_address == login_data["email_address"])
     ).first()
@@ -61,9 +62,16 @@ def handle_login(login_data: UserLogin, session: Session):
     session.commit()
     session.refresh(user)
     
+    token_data = {
+        "sub": user.email_address, 
+        "user_id": user.user_id,
+        "role": user.role.value,
+        "scope": login_data.get("scope", [])
+    }
+    
     access_token_expires = timedelta(minutes=30)
     access_token = create_access_token(
-        data={"sub": user.email_address, "user_id": user.user_id},
+        data=token_data,
         expires_delta=access_token_expires
     )
     
@@ -102,4 +110,13 @@ def get_authenticated_user(
 def get_current_active_user(current_user: User = Depends(get_authenticated_user)) -> User:
     if not current_user.is_active:
         raise HTTPException(status_code=400, detail="Usuario inactivo")
+    return current_user
+
+
+def get_current_admin_user(current_user: User = Depends(get_authenticated_user)) -> User:
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Se requieren permisos de administrador"
+        )
     return current_user
