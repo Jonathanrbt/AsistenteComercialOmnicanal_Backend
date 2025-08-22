@@ -2,8 +2,12 @@ from fastapi import FastAPI
 from sqlmodel import SQLModel
 from app.utils.dbConn import engine
 from app.models import userModel, chatModel, messageModel
+from app.routes.telegram.telegramRoutes import router as telegramRouter
 
 app = FastAPI()
+
+app.include_router(telegramRouter, prefix="/api/telegram")
+
 
 @app.on_event("startup")
 def on_startup():
@@ -13,5 +17,3 @@ def on_startup():
 def health():
     return {"status": "ok"}
 
-if __name__ == "__main__":
-   print("BOT RUNNING")
