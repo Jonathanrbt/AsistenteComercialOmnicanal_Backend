@@ -1,0 +1,10 @@
+[
+  {
+    "product_id": 1,
+    "title": "PlayStation 5",
+    "description": "Consola PlayStation 5 con lector de discos.",
+    "price": 2999000,
+    "category": "consola",
+    "stock": 5
+  }
+]
